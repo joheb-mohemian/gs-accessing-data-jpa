@@ -1,9 +1,6 @@
 package com.example.accessingdatajpa;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class Customer {
@@ -13,6 +10,10 @@ public class Customer {
 	private Long id;
 	private String firstName;
 	private String lastName;
+
+	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL)
+	@PrimaryKeyJoinColumn
+	private Address address;
 
 	protected Customer() {}
 
@@ -24,8 +25,8 @@ public class Customer {
 	@Override
 	public String toString() {
 		return String.format(
-				"Customer[id=%d, firstName='%s', lastName='%s']",
-				id, firstName, lastName);
+				"Customer[id=%d, firstName='%s', lastName='%s', street='%s']",
+				id, firstName, lastName, address != null ? address.getStreet() : "not set");
 	}
 
 	public Long getId() {
@@ -38,5 +39,13 @@ public class Customer {
 
 	public String getLastName() {
 		return lastName;
+	}
+
+	public Address getAddress() {
+		return address;
+	}
+
+	public void setAddress(Address address) {
+		this.address = address;
 	}
 }

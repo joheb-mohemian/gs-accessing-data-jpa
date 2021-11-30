@@ -16,30 +16,44 @@
 
 package com.example.accessingdatajpa;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @DataJpaTest
-public class CustomerRepositoryTests {
+class CustomerRepositoryTests {
+
 	@Autowired
 	private TestEntityManager entityManager;
 
 	@Autowired
 	private CustomerRepository customers;
 
-	@Test
-	public void testFindByLastName() {
-		Customer customer = new Customer("first", "last");
+	private Customer customer;
+
+	@BeforeEach
+	void setUpData() {
+		customer = new Customer("first", "last");
+		Address address = new Address(customer, "street");
+		customer.setAddress(address);
+		entityManager.persist(address);
 		entityManager.persist(customer);
+	}
 
-		List<Customer> findByLastName = customers.findByLastName(customer.getLastName());
+	@Test
+	void testEntityWithOneToOne() {
+		Customer customerEntity = customers.findById(customer.getId().longValue());
+		assertThat(customerEntity.getAddress()).isNotNull();
+	}
 
-		assertThat(findByLastName).extracting(Customer::getLastName).containsOnly(customer.getLastName());
+	@Test
+	void testProjectionWithOneToOne() {
+		// now let's fetch the customer in two ways
+		CustomerProjection customerProjection = customers.findById(customer.getId(), CustomerProjection.class);
+		assertThat(customerProjection.getAddress()).isNotNull();
 	}
 }
