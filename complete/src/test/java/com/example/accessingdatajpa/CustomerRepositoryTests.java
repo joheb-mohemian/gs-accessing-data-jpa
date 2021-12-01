@@ -52,7 +52,6 @@ class CustomerRepositoryTests {
 
 	@Test
 	void testProjectionWithOneToOne() {
-		// now let's fetch the customer in two ways
 		CustomerProjection customerProjection = customers.findById(customer.getId(), CustomerProjection.class);
 		assertThat(customerProjection.getAddress()).isNotNull();
 	}
