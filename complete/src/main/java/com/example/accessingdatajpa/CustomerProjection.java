@@ -6,5 +6,5 @@ public interface CustomerProjection {
 
 	String getLastName();
 
-	AddressProjection getAddress();
+	Address getAddress();
 }
