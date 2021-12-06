@@ -22,13 +22,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 class CustomerRepositoryTests {
 
 	@Autowired
-	private TestEntityManager entityManager;
+	private EntityManager entityManager;
 
 	@Autowired
 	private CustomerRepository customers;
@@ -53,6 +61,30 @@ class CustomerRepositoryTests {
 	@Test
 	void testProjectionWithOneToOne() {
 		CustomerProjection customerProjection = customers.findById(customer.getId(), CustomerProjection.class);
-		assertThat(customerProjection.getAddress()).isNotNull();
+		final Address address = customerProjection.getAddress();
+		assertThat(address).isNotNull();
+	}
+
+	@Test
+	void testCustomerQuery(){
+		final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		final CriteriaQuery<Customer> query = cb.createQuery(Customer.class);
+		query.from(Customer.class);
+		final Customer customer = entityManager.createQuery(query).getSingleResult();
+
+		assertThat(customer).isNotNull();
+		assertThat(customer.getAddress()).isNotNull();
+	}
+	@Test
+	void testTupleQuery(){
+		final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		final CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class);
+		final Root<Customer> root = query.from(Customer.class);
+		query.multiselect(root.get("id"),root.get("address"));
+		final Tuple tuple = entityManager.createQuery(query).getSingleResult();
+
+		assertThat(tuple).isNotNull();
+		assertThat(tuple.get(0)).isEqualTo(customer.getId());
+		assertThat(tuple.get(1)).describedAs("address should be pressent").isNotNull().isInstanceOf(Address.class);
 	}
 }
