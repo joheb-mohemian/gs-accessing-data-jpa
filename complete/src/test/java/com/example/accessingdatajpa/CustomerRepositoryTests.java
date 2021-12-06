@@ -35,56 +35,57 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 class CustomerRepositoryTests {
 
-	@Autowired
-	private EntityManager entityManager;
+    @Autowired
+    private EntityManager entityManager;
 
-	@Autowired
-	private CustomerRepository customers;
+    @Autowired
+    private CustomerRepository customers;
 
-	private Customer customer;
+    private Customer customer;
 
-	@BeforeEach
-	void setUpData() {
-		customer = new Customer("first", "last");
-		Address address = new Address(customer, "street");
-		customer.setAddress(address);
-		entityManager.persist(address);
-		entityManager.persist(customer);
-	}
+    @BeforeEach
+    void setUpData() {
+        customer = new Customer("first", "last");
+        Address address = new Address(customer, "street");
+        customer.setAddress(address);
+        entityManager.persist(address);
+        entityManager.persist(customer);
+    }
 
-	@Test
-	void testEntityWithOneToOne() {
-		Customer customerEntity = customers.findById(customer.getId().longValue());
-		assertThat(customerEntity.getAddress()).isNotNull();
-	}
+    @Test
+    void testEntityWithOneToOne() {
+        Customer customerEntity = customers.findById(customer.getId().longValue());
+        assertThat(customerEntity.getAddress()).isNotNull();
+    }
 
-	@Test
-	void testProjectionWithOneToOne() {
-		CustomerProjection customerProjection = customers.findById(customer.getId(), CustomerProjection.class);
-		final Address address = customerProjection.getAddress();
-		assertThat(address).isNotNull();
-	}
+    @Test
+    void testProjectionWithOneToOne() {
+        CustomerProjection customerProjection = customers.findById(customer.getId(), CustomerProjection.class);
+        final Address address = customerProjection.getAddress();
+        assertThat(address).isNotNull();
+    }
 
-	@Test
-	void testCustomerQuery(){
-		final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		final CriteriaQuery<Customer> query = cb.createQuery(Customer.class);
-		query.from(Customer.class);
-		final Customer customer = entityManager.createQuery(query).getSingleResult();
+    @Test
+    void testCustomerQuery() {
+        final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        final CriteriaQuery<Customer> query = cb.createQuery(Customer.class);
+        query.from(Customer.class);
+        final Customer customer = entityManager.createQuery(query).getSingleResult();
 
-		assertThat(customer).isNotNull();
-		assertThat(customer.getAddress()).isNotNull();
-	}
-	@Test
-	void testTupleQuery(){
-		final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		final CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class);
-		final Root<Customer> root = query.from(Customer.class);
-		query.multiselect(root.get("id"),root.get("address"));
-		final Tuple tuple = entityManager.createQuery(query).getSingleResult();
+        assertThat(customer).isNotNull();
+        assertThat(customer.getAddress()).isNotNull();
+    }
 
-		assertThat(tuple).isNotNull();
-		assertThat(tuple.get(0)).isEqualTo(customer.getId());
-		assertThat(tuple.get(1)).describedAs("address should be pressent").isNotNull().isInstanceOf(Address.class);
-	}
+    @Test
+    void testTupleQuery() {
+        final CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        final CriteriaQuery<Tuple> query = cb.createQuery(Tuple.class);
+        final Root<Customer> root = query.from(Customer.class);
+        query.multiselect(root.get("id"), root.get("address"));
+        final Tuple tuple = entityManager.createQuery(query).getSingleResult();
+
+        assertThat(tuple).isNotNull();
+        assertThat(tuple.get(0)).isEqualTo(customer.getId());
+        assertThat(tuple.get(1)).describedAs("address should be pressent").isNotNull().isInstanceOf(Address.class);
+    }
 }
